@@ -1,0 +1,578 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.2"/>
+
+
+
+
+  <meta name="keywords" content="XenServer,虚拟化," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.2" />
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    analytics: {
+      baidu: '',
+      google: ''
+    },
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+  <title> 使用xe在CLI下操作XenServer // λ的笔记 </title>
+</head>
+
+<body>
+<!--[if lte IE 8]> <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'> <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode"><img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820" alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari." style='margin-left:auto;margin-right:auto;display: block;'/></a></div> <![endif]-->
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <div id="header" class="header">
+      <div class="header-inner">
+        <h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand">
+      <span class="logo">
+        <i class="icon-logo"></i>
+      </span>
+      <span class="site-title">λ的笔记</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+
+  <ul id="menu" class="menu">
+     
+    
+      
+      <li class="menu-item menu-item-home">
+        <a href="/">
+          <i class="menu-item-icon icon-home"></i> <br />
+          首頁
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-archives">
+        <a href="/archives">
+          <i class="menu-item-icon icon-archives"></i> <br />
+          歸檔
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-tags">
+        <a href="/tags">
+          <i class="menu-item-icon icon-tags"></i> <br />
+          標籤
+        </a>
+      </li>
+    
+  </ul>
+
+
+      </div>
+    </div>
+
+    <div id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content">
+          
+
+  <div id="posts" class="posts-expand">
+    
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              使用xe在CLI下操作XenServer
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          發表於 2013-09-15
+        </span>
+
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2013/09/15/使用xe在cli下操作xenserver/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2013/09/15/使用xe在cli下操作xenserver/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <p>XenServer 的管理通常都是在Windows下的XenCenter中完成，如果希望直接在服务器上操作虚拟机就需要熟悉xe这个命令。xe非常强大，大部分XenServer的管理都可以使用它来完成，通过XenServer的Shell下的xe补全功能可以大大提高工作效率。</p>
+<h2 id="先了解一些名词">先了解一些名词</h2><ul>
+<li><strong>pool</strong>    一堆安装了XenServer的物理服务器可以构成一个Pool</li>
+<li><strong>vm</strong>    虚拟机 </li>
+<li><strong>host</strong>    物理机 </li>
+<li><strong>network</strong>    一个虚拟网络</li>
+<li><strong>pif</strong>    一个物理网络接口 (通过vSwitch划分创建的VLAN接口算pif)</li>
+<li><strong>vif</strong>    一个虚拟网络接口</li>
+<li><strong>sr</strong>    一个物理存储资源，如一个SAN、一个NFS空间等 </li>
+<li><strong>vdi</strong>    一个虚拟机使用的虚拟磁盘</li>
+<li><strong>vbd</strong>    一个虚拟的块设备</li>
+<li><strong>pbd</strong>    通过物理主机访问的一个物理块设备</li>
+</ul>
+<a id="more"></a>
+<h2 id="虚拟机基本操作">虚拟机基本操作</h2><h4 id="列出所有的虚拟机_vm-list">列出所有的虚拟机 vm-list</h4><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr_selector">[root@xenserver-m ~]</span># <span class="tag">xe</span> <span class="tag">vm-list</span> </span><br><span class="line"><span class="tag">uuid</span> ( RO)           : <span class="tag">33633a0b-5ee0-6be6-96d4-49292fa19083</span></span><br><span class="line">     <span class="tag">name-label</span> ( RW): <span class="tag">tempserver</span></span><br><span class="line">    <span class="tag">power-state</span> ( RO): <span class="tag">running</span></span><br><span class="line"></span><br><span class="line"><span class="tag">uuid</span> ( RO)           : <span class="tag">bb9486bf-14a4-2254-5c0f-f9327d5e9761</span></span><br><span class="line">     <span class="tag">name-label</span> ( RW): <span class="tag">Mail</span></span><br><span class="line">    <span class="tag">power-state</span> ( RO): <span class="tag">running</span></span><br></pre></td></tr></table></figure>
+<h4 id="开机">开机</h4><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vm-<span class="built_in">start</span> <span class="built_in">uuid</span>=[<span class="built_in">uuid</span>] </span><br><span class="line">vm-<span class="built_in">start</span> vm=[vmname]</span><br></pre></td></tr></table></figure>
+<h4 id="关机">关机</h4><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">vm</span>-shutdown uuid=[uuid] </span><br><span class="line"><span class="keyword">vm</span>-shutdown <span class="keyword">vm</span>=[vmname]</span><br></pre></td></tr></table></figure>
+<h2 id="sr相关操作">sr相关操作</h2><h3 id="vdi_vbd_pbd_sr之间的关系">vdi vbd pbd sr之间的关系</h3><p>vbd和pbd从主机的角度来看的都是块设备，只不过一个是物理真实的一个是虚拟的；一个从物理主机角度看一个从虚拟机角度看。sr是从XenServer管理存储的需要提出的概念，通常一个主机的物理块设备pbd对应了一个sr。vdi简单理解就是在sr上的磁盘分区，通过vbd交给虚拟机使用。</p>
+<h4 id="实践：手动为虚拟机创建一个磁盘">实践：手动为虚拟机创建一个磁盘</h4><ul>
+<li>创建一个vdi。vdi总是从属于某个sr下,命令将返回新vdi的uuid</li>
+</ul>
+<figure class="highlight puppet"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xe vdi-create <span class="literal">name</span>-label=new-disk <span class="built_in">type</span>=<span class="keyword">user</span> sr-<span class="built_in">uuid</span>=[sr的<span class="built_in">uuid</span>] <span class="built_in">virtual</span>-size=<span class="number">10</span>GiB</span><br></pre></td></tr></table></figure>
+<ul>
+<li>为虚拟机创建vbd。vbd总是绑定在某个vdi上，从属于某个虚拟机，device指出是虚拟机的第几个块设备，返回vbd的uuid</li>
+</ul>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xe vbd-<span class="built_in">create</span> vdi-<span class="built_in">uuid</span>=[刚才创建的vdi的<span class="built_in">uuid</span>] device=<span class="number">2</span> vm-<span class="built_in">uuid</span>=[虚拟机的<span class="built_in">uuid</span>]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将vbd在虚拟机中生效(plug)</li>
+</ul>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xe vbd-plug <span class="built_in">uuid</span>=[刚才创建的vbd的<span class="built_in">uuid</span>]</span><br></pre></td></tr></table></figure>
+<h4 id="显示一个虚拟机的vbd(virtual_block_device)">显示一个虚拟机的vbd(virtual block device)</h4><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vbd-list vm-<span class="built_in">uuid</span>=[<span class="built_in">uuid</span>]</span><br></pre></td></tr></table></figure>
+<h2 id="网络接口相关操作">网络接口相关操作</h2><h3 id="network_pif_vif_之间的关系">network pif vif 之间的关系</h3><h4 id="实践：手动为虚拟机创建一个网络连接">实践：手动为虚拟机创建一个网络连接</h4><figure class="highlight puppet"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[<span class="literal">root</span>@<span class="constant">Xen</span>Server1 ~]<span class="comment"># xe vif-list vm-name-label=mysql-slave53 </span></span><br><span class="line"><span class="built_in">uuid</span> ( <span class="constant">R</span>O)            : d4db8d3f-<span class="number">6544</span>-<span class="number">047</span>e-f96a-f33b1b14ac3e</span><br><span class="line">         vm-<span class="built_in">uuid</span> ( <span class="constant">R</span>O): <span class="number">5</span>d177e6e-<span class="number">99</span>fb-d2e3-a326-cdf90c09c1a7</span><br><span class="line">          <span class="literal">device</span> ( <span class="constant">R</span>O): <span class="number">2</span></span><br><span class="line">    network-<span class="built_in">uuid</span> ( <span class="constant">R</span>O): <span class="number">03</span>d63aca-0e81-bb11-<span class="number">11</span>ac-fa259f661d98</span><br><span class="line"></span><br><span class="line">[<span class="literal">root</span>@<span class="constant">Xen</span>Server1 ~]<span class="comment"># xe vif-unplug uuid=d4db8d3f-6544-047e-f96a-f33b1b14ac3e</span></span><br><span class="line">[<span class="literal">root</span>@<span class="constant">Xen</span>Server1 ~]<span class="comment"># xe vif-destroy uuid=d4db8d3f-6544-047e-f96a-f33b1b14ac3e</span></span><br><span class="line">[<span class="literal">root</span>@<span class="constant">Xen</span>Server1 ~]<span class="comment"># xe vif-create vm-uuid=5d177e6e-99fb-d2e3-a326-cdf90c09c1a7 network-uuid=0e3cac31-2f2b-589d-7f62-b6ae55de2a93 mac=random device=0 </span></span><br><span class="line"><span class="number">96</span>a04e4b-fce5-<span class="number">7632</span>-<span class="number">3</span>ed9-<span class="number">54446</span>a95c213</span><br><span class="line">[<span class="literal">root</span>@<span class="constant">Xen</span>Server1 ~]<span class="comment"># xe vif-plug uuid=96a04e4b-fce5-7632-3ed9-54446a95c213</span></span><br></pre></td></tr></table></figure>
+<h2 id="快照相关操作">快照相关操作</h2><h4 id="创建快照">创建快照</h4><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xe vm-snapshot <span class="built_in">uuid</span>=[要创建快照的虚拟机的<span class="built_in">uuid</span>] <span class="built_in">new</span>-name-label=snapshotname</span><br></pre></td></tr></table></figure>
+<h4 id="将快照导出存储为文件">将快照导出存储为文件</h4><figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">xe <span class="keyword">template</span>-param-<span class="type">set</span> <span class="keyword">is</span>-a-<span class="keyword">template</span>=<span class="literal">false</span> ha-always-run=<span class="literal">false</span> uuid=[snapshot-uuid]</span><br><span class="line">xe vm-<span class="keyword">export</span> vm=[snapshot-uuid] filename=filename.xva</span><br></pre></td></tr></table></figure>
+<h4 id="删除快照">删除快照</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xe vm-<span class="operator"><span class="keyword">uninstall</span> <span class="keyword">uuid</span>=[<span class="keyword">snapshot</span>-<span class="keyword">uuid</span>]</span></span><br></pre></td></tr></table></figure>
+<h4 id="恢复快照">恢复快照</h4><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xe snapshot-revert <span class="built_in">uuid</span>=[snapshot-<span class="built_in">uuid</span>]</span><br></pre></td></tr></table></figure>
+<h4 id="列出所有快照">列出所有快照</h4><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xe snapshot-<span class="type">list</span></span><br></pre></td></tr></table></figure>
+<h4 id="删除对应快照的命令：">删除对应快照的命令：</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xe snapshot-<span class="operator"><span class="keyword">uninstall</span> <span class="keyword">snapshot</span>-<span class="keyword">uuid</span>=[<span class="keyword">snapshot</span>-<span class="keyword">uuid</span>]</span></span><br></pre></td></tr></table></figure>
+<h2 id="使用VNC连接到虚拟机的控制台">使用VNC连接到虚拟机的控制台</h2><p>参考这篇<a href="http://blogs.citrix.com/2011/02/18/using-vnc-to-connect-to-a-xenserver-vms-console/" target="_blank" rel="external">文章</a></p>
+<p>每台虚拟机开机后都会在本地宿主机上创建一个VNC stream，可通过本地的一个VNC端口访问，所以我们需要做的事情就是找到在哪台宿主机上的哪个端口，然后通过ssh建立一个隧道就可以打开VNC stream了。</p>
+<h4 id="确定虚拟机的宿主机和在宿主机上的编号">确定虚拟机的宿主机和在宿主机上的编号</h4><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@XenServer1 ~]<span class="comment">#  xe vm-list params=dom-id,resident-on name-label=mysql-slave53 </span></span><br><span class="line">resident-<span class="function_start"><span class="keyword">on</span></span> ( RO)    : <span class="number">8</span>f69621a-ef3e-<span class="number">41</span>b5-a5f8-e938976f787e</span><br><span class="line">         dom-<span class="property">id</span> ( RO): <span class="number">98</span></span><br></pre></td></tr></table></figure>
+<h4 id="根据宿主机的uuid获取宿主机的名称">根据宿主机的uuid获取宿主机的名称</h4><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@XenServer1 ~]<span class="comment"># xe host-list uuid=8f69621a-ef3e-41b5-a5f8-e938976f787e</span></span><br><span class="line">uuid ( RO)                : <span class="number">8</span>f69621a-ef3e-<span class="number">41</span>b5-a5f8-e938976f787e</span><br><span class="line">          <span class="property">name</span>-label ( RW): XenServer1</span><br><span class="line">    <span class="property">name</span>-description ( RW): Default install <span class="keyword">of</span> XenServer</span><br></pre></td></tr></table></figure>
+<h4 id="根据宿主机的uuid获取宿主机的管理IP">根据宿主机的uuid获取宿主机的管理IP</h4><figure class="highlight dns"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@XenServer1 ~]# xe pif-list management=true params=IP host-uuid=<span class="number">8f69621</span>a-ef3e-41b5-a5f8-e<span class="number">938976f78</span>7e</span><br><span class="line">IP ( RO)    : <span class="number">192.168.189.10</span></span><br></pre></td></tr></table></figure>
+<h4 id="登录到相映的宿主机读取vnc的端口号">登录到相映的宿主机读取vnc的端口号</h4><p>这个需要使用xenstore-read访问XenStore。至于XenStore可以参考<a href="http://blog.csdn.net/zhengtingt108/article/details/5409820" target="_blank" rel="external">这里</a></p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="annotation">@XenServer</span>1 ~]# xenstore-read <span class="regexp">/local/</span>domain<span class="regexp">/98/</span>console/vnc-port</span><br><span class="line"><span class="number">5924</span></span><br></pre></td></tr></table></figure>
+<h4 id="VNC登录">VNC登录</h4><p>现在我们已经清楚了所有的已知，宿主机的管理IP以及VNC端口。在客户端创建一个ssh隧道，通过vncviewer即可连接上VNC:</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[my<span class="variable">@client</span> ~]<span class="variable">$ </span>ssh -<span class="constant">L </span><span class="number">5924</span><span class="symbol">:localhost</span><span class="symbol">:</span><span class="number">5924</span> root<span class="variable">@192</span>.<span class="number">168.189</span>.<span class="number">10</span></span><br><span class="line">[my<span class="variable">@client</span> ~]<span class="variable">$ </span>vncviewer <span class="symbol">localhost:</span><span class="number">5924</span></span><br></pre></td></tr></table></figure>
+<h3 id="直接用脚本吧">直接用脚本吧</h3><p>写了<a href="https://gist.github.com/lambdacpp/247f4adef98873bcc4ab" target="_blank" rel="external">shell脚本</a>来找端口。</p>
+
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/XenServer/"> #XenServer </a>
+          
+            <a href="/tags/虚拟化/"> #虚拟化 </a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2013/10/08/添加一张无线网卡做ap/">添加一张无线网卡做AP</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2013/08/28/讲一讲radius服务/">讲一讲RADIUS服务</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </div>
+  </div>
+
+
+
+    
+      <div class="comments" id="comments">
+        
+          <div class="ds-thread" data-thread-key="2013/09/15/使用xe在cli下操作xenserver/"
+               data-title="使用xe在CLI下操作XenServer" data-url="http://lambdacpp.github.io/2013/09/15/使用xe在cli下操作xenserver/">
+          </div>
+        
+      </div>
+    
+  </div>
+
+
+        </div>
+
+        
+      </div>
+
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目錄
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            本站概覽
+          </li>
+        </ul>
+      
+
+      <div class="site-overview">
+        <div class="site-author motion-element">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="λ.cpp" />
+          <p class="site-author-name">λ.cpp</p>
+        </div>
+        <p class="site-description motion-element"></p>
+        <div class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">文章</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分類</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">8</span>
+              <span class="site-state-item-name">標籤</span>
+              </a>
+          </div>
+
+        </div>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+              <a href="https://github.com/lambdacpp" target="_blank">GitHub</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="http://www.douban.com/people/lambdacpp/" target="_blank">DouBan</a>
+            </span>
+            
+          
+        </div>
+
+        
+        
+
+      </div>
+
+      
+        <div class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#先了解一些名词"><span class="nav-number">1.</span> <span class="nav-text">先了解一些名词</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#虚拟机基本操作"><span class="nav-number">2.</span> <span class="nav-text">虚拟机基本操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#列出所有的虚拟机_vm-list"><span class="nav-number">2.0.1.</span> <span class="nav-text">列出所有的虚拟机 vm-list</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#开机"><span class="nav-number">2.0.2.</span> <span class="nav-text">开机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#关机"><span class="nav-number">2.0.3.</span> <span class="nav-text">关机</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sr相关操作"><span class="nav-number">3.</span> <span class="nav-text">sr相关操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#vdi_vbd_pbd_sr之间的关系"><span class="nav-number">3.1.</span> <span class="nav-text">vdi vbd pbd sr之间的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#实践：手动为虚拟机创建一个磁盘"><span class="nav-number">3.1.1.</span> <span class="nav-text">实践：手动为虚拟机创建一个磁盘</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#显示一个虚拟机的vbd(virtual_block_device)"><span class="nav-number">3.1.2.</span> <span class="nav-text">显示一个虚拟机的vbd(virtual block device)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络接口相关操作"><span class="nav-number">4.</span> <span class="nav-text">网络接口相关操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#network_pif_vif_之间的关系"><span class="nav-number">4.1.</span> <span class="nav-text">network pif vif 之间的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#实践：手动为虚拟机创建一个网络连接"><span class="nav-number">4.1.1.</span> <span class="nav-text">实践：手动为虚拟机创建一个网络连接</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快照相关操作"><span class="nav-number">5.</span> <span class="nav-text">快照相关操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#创建快照"><span class="nav-number">5.0.1.</span> <span class="nav-text">创建快照</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#将快照导出存储为文件"><span class="nav-number">5.0.2.</span> <span class="nav-text">将快照导出存储为文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除快照"><span class="nav-number">5.0.3.</span> <span class="nav-text">删除快照</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#恢复快照"><span class="nav-number">5.0.4.</span> <span class="nav-text">恢复快照</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#列出所有快照"><span class="nav-number">5.0.5.</span> <span class="nav-text">列出所有快照</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除对应快照的命令："><span class="nav-number">5.0.6.</span> <span class="nav-text">删除对应快照的命令：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用VNC连接到虚拟机的控制台"><span class="nav-number">6.</span> <span class="nav-text">使用VNC连接到虚拟机的控制台</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#确定虚拟机的宿主机和在宿主机上的编号"><span class="nav-number">6.0.1.</span> <span class="nav-text">确定虚拟机的宿主机和在宿主机上的编号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#根据宿主机的uuid获取宿主机的名称"><span class="nav-number">6.0.2.</span> <span class="nav-text">根据宿主机的uuid获取宿主机的名称</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#根据宿主机的uuid获取宿主机的管理IP"><span class="nav-number">6.0.3.</span> <span class="nav-text">根据宿主机的uuid获取宿主机的管理IP</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#登录到相映的宿主机读取vnc的端口号"><span class="nav-number">6.0.4.</span> <span class="nav-text">登录到相映的宿主机读取vnc的端口号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#VNC登录"><span class="nav-number">6.0.5.</span> <span class="nav-text">VNC登录</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#直接用脚本吧"><span class="nav-number">6.1.</span> <span class="nav-text">直接用脚本吧</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </div>
+      
+
+    </div>
+  </div>
+
+
+    </div>
+
+    <div id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; &nbsp; 
+  2015
+  <span class="with-love">
+    <i class="icon-heart"></i>
+  </span>
+  <span class="author">λ.cpp</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 強力驅動
+</div>
+
+<div class="theme-info">
+  主題 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </div>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js" id="motion.global"></script>
+
+
+
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var $sidebarInner = $('.sidebar-inner');
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.didShow', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+          var self = this;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      $(indicator).velocity('stop').velocity({
+        opacity: action === 'show' ? 0.4 : 0
+      }, { duration: 100 });
+    }
+
+  });
+</script>
+
+
+  <script type="text/javascript" id="sidebar.nav">
+    $(document).ready(function () {
+      var html = $('html');
+
+      $('.sidebar-nav li').on('click', function () {
+        var item = $(this);
+        var activeTabClassName = 'sidebar-nav-active';
+        var activePanelClassName = 'sidebar-panel-active';
+        if (item.hasClass(activeTabClassName)) {
+          return;
+        }
+
+        var currentTarget = $('.' + activePanelClassName);
+        var target = $('.' + item.data('target'));
+
+        currentTarget.velocity('transition.slideUpOut', 200, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', 200)
+            .addClass(activePanelClassName);
+        });
+
+        item.siblings().removeClass(activeTabClassName);
+        item.addClass(activeTabClassName);
+      });
+
+      $('.post-toc a').on('click', function (e) {
+        e.preventDefault();
+        var offset = $(escapeSelector(this.getAttribute('href'))).offset().top;
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        });
+      });
+
+      // Expand sidebar on post detail page by default, when post has a toc.
+      var $tocContent = $('.post-toc-content');
+      if (isDesktop() && CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    });
+  </script>
+
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"your-duoshuo-shortname"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+
+
+  
+  
+
+</body>
+</html>

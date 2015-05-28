@@ -1,0 +1,550 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.2"/>
+
+
+
+
+  <meta name="keywords" content="Linux Tips,WiFi," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.2" />
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    analytics: {
+      baidu: '',
+      google: ''
+    },
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+  <title> 添加一张无线网卡做AP // λ的笔记 </title>
+</head>
+
+<body>
+<!--[if lte IE 8]> <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'> <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode"><img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820" alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari." style='margin-left:auto;margin-right:auto;display: block;'/></a></div> <![endif]-->
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <div id="header" class="header">
+      <div class="header-inner">
+        <h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand">
+      <span class="logo">
+        <i class="icon-logo"></i>
+      </span>
+      <span class="site-title">λ的笔记</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+
+  <ul id="menu" class="menu">
+     
+    
+      
+      <li class="menu-item menu-item-home">
+        <a href="/">
+          <i class="menu-item-icon icon-home"></i> <br />
+          首頁
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-archives">
+        <a href="/archives">
+          <i class="menu-item-icon icon-archives"></i> <br />
+          歸檔
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-tags">
+        <a href="/tags">
+          <i class="menu-item-icon icon-tags"></i> <br />
+          標籤
+        </a>
+      </li>
+    
+  </ul>
+
+
+      </div>
+    </div>
+
+    <div id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content">
+          
+
+  <div id="posts" class="posts-expand">
+    
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              添加一张无线网卡做AP
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          發表於 2013-10-08
+        </span>
+
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2013/10/08/添加一张无线网卡做ap/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2013/10/08/添加一张无线网卡做ap/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <h3 id="场景">场景</h3><p>刚换了办公室，没有 WiFi。加一个无线路由器、AP 都有点麻烦。找了一个旧的无线网卡安装在计算机上，准备自己做个 AP。</p>
+<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">|<span class="string">有线端口</span>|<span class="string">==== </span>|<span class="string">    台式机  +----无线网卡-++ ***WiFi*** </span>|<span class="string"> 手持设备 </span>|</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h3 id="首先识别安装网卡">首先识别安装网卡</h3><p>Google一下发现可用hostapd来做软ap。安装好hostapd准备配置发现没有无线网络的网络接口wlan。<code>lspci</code>可以发现网卡,但<code>dmesg</code>没有网络接口配置的信息。 原来按网络上一些贴子大都使用没有安装固件的步骤，那是因为装操作系统的时候，系统检查到了就直接安装了。在已经安装好的机器上直接插个网卡Linux不会自动把固件安装好，所以，通过lspci可以看见设备但不会自动出现什么<code>wlan0</code>网络接口。</p>
+<p>通过<code>lspci</code> 可以看到安装的网卡的型号:<br><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="id">#lspci</span></span><br><span class="line">..(略去)...</span><br><span class="line">04<span class="pseudo">:04</span><span class="class">.0</span> <span class="tag">Network</span> <span class="rule"><span class="attribute">controller</span>:<span class="value"> Ralink corp. RT2561/RT61 <span class="number">802.11</span>g PCI</span></span></span><br></pre></td></tr></table></figure></p>
+<p>显然应该去安装 Ralink 的固件。直接通过<code>aptitude search firmware</code> 可找到 <code>firmware-ralink</code> 包。<br>安装这个包以后<code>wlan0</code> 接口就出现了，说明设备被正确驱动！</p>
+<h3 id="用hostapd创建无线AP">用hostapd创建无线AP</h3><p>照着<a href="http://www.cyberciti.biz/faq/debian-ubuntu-linux-setting-wireless-access-point/" target="_blank" rel="external">这篇文章</a>按部就班，<code>/etc/default/hostapd</code>添加一行：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="setting">DAEMON_CONF=<span class="value"><span class="string">"/etc/hostapd/hostapd.conf"</span></span></span></span><br></pre></td></tr></table></figure>
+<p><code>hostapd.conf</code>的配置也很普通：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="setting">interface=<span class="value">wlan0</span></span></span><br><span class="line"><span class="setting">driver=<span class="value">nl80211</span></span></span><br><span class="line"><span class="setting">country_code=<span class="value">CN</span></span></span><br><span class="line"><span class="setting">ssid=<span class="value">omg-ap</span></span></span><br><span class="line"><span class="setting">hw_mode=<span class="value">g</span></span></span><br><span class="line"><span class="setting">channel=<span class="value"><span class="number">8</span></span></span></span><br><span class="line"><span class="setting">wpa=<span class="value"><span class="number">2</span></span></span></span><br><span class="line"><span class="setting">wpa_passphrase=<span class="value">mypassword</span></span></span><br><span class="line"><span class="setting">wpa_key_mgmt=<span class="value">WPA-PSK</span></span></span><br><span class="line"><span class="setting">wpa_pairwise=<span class="value">TKIP</span></span></span><br><span class="line"><span class="setting">rsn_pairwise=<span class="value">CCMP</span></span></span><br><span class="line"><span class="setting">auth_algs=<span class="value"><span class="number">1</span></span></span></span><br><span class="line"><span class="setting">macaddr_acl=<span class="value"><span class="number">0</span></span></span></span><br></pre></td></tr></table></figure>
+<h4 id="一个坑">一个坑</h4><p>启动<code>hostapd</code>失败，说找不到wlan0。接口存在怎么会找不到呢？调整配置试了几次都失败！突然发现出错提示wlan0后面有空格， <strong>难道hostapd取配置没有trim空格？</strong> 再看配置wlan0后面果然有个空格，果断删除，启动成功。</p>
+<h4 id="另一个坑">另一个坑</h4><p><code>hostapd</code>启动起来，使用ipod搜索发现AP、连接、输入密码，认证失败！</p>
+<p>查看日志</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Oct  <span class="number">8</span> <span class="number">16</span>:<span class="number">31</span>:<span class="number">07</span> omg <span class="string">hostapd:</span> <span class="string">wlan0:</span> STA <span class="string">f4:</span><span class="number">1</span><span class="string">b:</span><span class="string">a1:</span><span class="number">5</span><span class="string">f:</span><span class="string">b3:</span>cd IEEE <span class="number">802.11</span>: authenticated</span><br><span class="line">Oct  <span class="number">8</span> <span class="number">16</span>:<span class="number">31</span>:<span class="number">07</span> omg <span class="string">hostapd:</span> <span class="string">wlan0:</span> STA <span class="string">f4:</span><span class="number">1</span><span class="string">b:</span><span class="string">a1:</span><span class="number">5</span><span class="string">f:</span><span class="string">b3:</span>cd IEEE <span class="number">802.11</span>: associated (aid <span class="number">1</span>)</span><br><span class="line">Oct  <span class="number">8</span> <span class="number">16</span>:<span class="number">31</span>:<span class="number">16</span> omg <span class="string">hostapd:</span> <span class="string">wlan0:</span> STA <span class="string">f4:</span><span class="number">1</span><span class="string">b:</span><span class="string">a1:</span><span class="number">5</span><span class="string">f:</span><span class="string">b3:</span>cd IEEE <span class="number">802.11</span>: deauthenticated due to local deauth request</span><br></pre></td></tr></table></figure>
+<p>Google半天发现这个[贴子]（<a href="https://bbs.archlinux.org/viewtopic.php?id=151342），试试运行hostapd时候需要添加参数" target="_blank" rel="external">https://bbs.archlinux.org/viewtopic.php?id=151342），试试运行hostapd时候需要添加参数</a> <code>-e /dev/urandom</code>，认证成功！</p>
+<p>于是在<code>/etc/default/hostapd</code>添加一行：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="setting">DAEMON_OPTS=<span class="value"><span class="string">"-e /dev/urandom"</span></span></span></span><br></pre></td></tr></table></figure>
+<h3 id="桥模式，还是NAT">桥模式，还是NAT</h3><p><em>桥模式</em>简单的理解就是将有线信号变成无线信号，纯二层环境，台式机还要接入网络工作，所以桥模式只有放弃了。直接NAT了，DHCP也不做了，手动配置吧。</p>
+<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor"># echo 1 &gt;/proc/sys/net/ipv4/ip_forward</span></span><br><span class="line"><span class="preprocessor"># iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE</span></span><br></pre></td></tr></table></figure>
+<p>iptables 真是方便啊，iPod可以上网了！</p>
+
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux-Tips/"> #Linux Tips </a>
+          
+            <a href="/tags/WiFi/"> #WiFi </a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2013/12/03/创建自己的debian-vagrant-box/">创建自己的Debian Vagrant Box</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2013/09/15/使用xe在cli下操作xenserver/">使用xe在CLI下操作XenServer</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </div>
+  </div>
+
+
+
+    
+      <div class="comments" id="comments">
+        
+          <div class="ds-thread" data-thread-key="2013/10/08/添加一张无线网卡做ap/"
+               data-title="添加一张无线网卡做AP" data-url="http://lambdacpp.github.io/2013/10/08/添加一张无线网卡做ap/">
+          </div>
+        
+      </div>
+    
+  </div>
+
+
+        </div>
+
+        
+      </div>
+
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目錄
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            本站概覽
+          </li>
+        </ul>
+      
+
+      <div class="site-overview">
+        <div class="site-author motion-element">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="λ.cpp" />
+          <p class="site-author-name">λ.cpp</p>
+        </div>
+        <p class="site-description motion-element"></p>
+        <div class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">文章</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分類</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">8</span>
+              <span class="site-state-item-name">標籤</span>
+              </a>
+          </div>
+
+        </div>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+              <a href="https://github.com/lambdacpp" target="_blank">GitHub</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="http://www.douban.com/people/lambdacpp/" target="_blank">DouBan</a>
+            </span>
+            
+          
+        </div>
+
+        
+        
+
+      </div>
+
+      
+        <div class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#场景"><span class="nav-number">1.</span> <span class="nav-text">场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#首先识别安装网卡"><span class="nav-number">2.</span> <span class="nav-text">首先识别安装网卡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用hostapd创建无线AP"><span class="nav-number">3.</span> <span class="nav-text">用hostapd创建无线AP</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#一个坑"><span class="nav-number">3.1.</span> <span class="nav-text">一个坑</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#另一个坑"><span class="nav-number">3.2.</span> <span class="nav-text">另一个坑</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#桥模式，还是NAT"><span class="nav-number">4.</span> <span class="nav-text">桥模式，还是NAT</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </div>
+      
+
+    </div>
+  </div>
+
+
+    </div>
+
+    <div id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; &nbsp; 
+  2015
+  <span class="with-love">
+    <i class="icon-heart"></i>
+  </span>
+  <span class="author">λ.cpp</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 強力驅動
+</div>
+
+<div class="theme-info">
+  主題 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </div>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js" id="motion.global"></script>
+
+
+
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var $sidebarInner = $('.sidebar-inner');
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.didShow', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+          var self = this;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      $(indicator).velocity('stop').velocity({
+        opacity: action === 'show' ? 0.4 : 0
+      }, { duration: 100 });
+    }
+
+  });
+</script>
+
+
+  <script type="text/javascript" id="sidebar.nav">
+    $(document).ready(function () {
+      var html = $('html');
+
+      $('.sidebar-nav li').on('click', function () {
+        var item = $(this);
+        var activeTabClassName = 'sidebar-nav-active';
+        var activePanelClassName = 'sidebar-panel-active';
+        if (item.hasClass(activeTabClassName)) {
+          return;
+        }
+
+        var currentTarget = $('.' + activePanelClassName);
+        var target = $('.' + item.data('target'));
+
+        currentTarget.velocity('transition.slideUpOut', 200, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', 200)
+            .addClass(activePanelClassName);
+        });
+
+        item.siblings().removeClass(activeTabClassName);
+        item.addClass(activeTabClassName);
+      });
+
+      $('.post-toc a').on('click', function (e) {
+        e.preventDefault();
+        var offset = $(escapeSelector(this.getAttribute('href'))).offset().top;
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        });
+      });
+
+      // Expand sidebar on post detail page by default, when post has a toc.
+      var $tocContent = $('.post-toc-content');
+      if (isDesktop() && CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    });
+  </script>
+
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"your-duoshuo-shortname"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+
+
+  
+  
+
+</body>
+</html>

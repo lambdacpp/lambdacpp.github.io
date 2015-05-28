@@ -1,0 +1,313 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.2"/>
+
+
+
+
+  <meta name="keywords" content="," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.2" />
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    analytics: {
+      baidu: '',
+      google: ''
+    },
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+  <title>
+  
+
+  
+    使用hexo管理我的Github Page主页 // λ的笔记
+  
+</title>
+</head>
+
+<body>
+<!--[if lte IE 8]> <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'> <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode"><img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820" alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari." style='margin-left:auto;margin-right:auto;display: block;'/></a></div> <![endif]-->
+  <div class="container one-column ">
+    <div class="headband"></div>
+
+    <div id="header" class="header">
+      <div class="header-inner">
+        <h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand">
+      <span class="logo">
+        <i class="icon-logo"></i>
+      </span>
+      <span class="site-title">λ的笔记</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+
+  <ul id="menu" class="menu">
+     
+    
+      
+      <li class="menu-item menu-item-home">
+        <a href="/">
+          <i class="menu-item-icon icon-home"></i> <br />
+          首頁
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-archives">
+        <a href="/archives">
+          <i class="menu-item-icon icon-archives"></i> <br />
+          歸檔
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-tags">
+        <a href="/tags">
+          <i class="menu-item-icon icon-tags"></i> <br />
+          標籤
+        </a>
+      </li>
+    
+  </ul>
+
+
+      </div>
+    </div>
+
+    <div id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content">
+          
+
+  <div id="posts" class="posts-expand">
+    
+    
+      <h3 id="终于做了这个决定">终于做了这个决定</h3><p><strong>『学而不思则罔』</strong></p>
+<p><strong>『写作是为了更好的思考』</strong></p>
+<p>常看些杂七杂八的东西，本着“通过写作来进行总结和思考是最好的学习方法”的原则，也做些笔记。既然做笔记，那就开了Github Page发布出来吧，一来避免随便记录不成文章，二来给自己一些压力不会轻易放弃。</p>
+<a id="more"></a>
+<h3 id="选来选去用了Hexo">选来选去用了Hexo</h3><p>用过的笔记工具可谓多亦。从纯文本、Emacs Wiki，云时代开始，从Dropbox、Evernote到“印象笔记”。最后明白了一个道理：要找到兼顾易用、富文本、协作、版本控制、排版控制、丰富输出的解决方案是绝不可能的，一个工具不行，一堆工具来Hack也不行。所以我得把要求降低一些：</p>
+<ul>
+<li>使用轻量标记语言</li>
+<li>便于版本控制</li>
+<li>部署简单</li>
+<li>不用再让注册新的互联网服务</li>
+</ul>
+<p>看到这样需求其实就很简单了：使用Markdown,配合git，套用模板，部署到Github或Heroku。</p>
+<ol>
+<li><em>为什么用Markdown?</em>  因为它莫名其妙的就成为了最流行的轻量标记语言，大家都支持;</li>
+<li><em>为什么是git?</em> 这个不是莫名其妙成为最流行的版本控制系统，它确实是最好的版本控制系统</li>
+<li><em>为什么需要hexo一类的平台?</em> 当然可以手动或自制脚本来搞定剩下的事情，我也曾经乐此不疲，后来发现我不是写笔记，是在玩脚本</li>
+<li><em>为什么Github?</em> 因为正在用</li>
+</ol>
+<p>至于用Jekyll、Octopress还是hexo，完全随机选择的结果。其实装好了都非常好用。另外，<a href="http://jianshu.io/" target="_blank" rel="external">简书</a>上有个<a href="http://jianshu.io/p/63HYZ6" target="_blank" rel="external">Drafts + Scriptogr.am + Dropbox 打造移动端 Markdown 风格博客</a>很是诱人，但本着不注册新服务的原则，忍了。</p>
+<h3 id="使用步骤记录">使用步骤记录</h3><p>参考：</p>
+<ul>
+<li><a href="http://zespia.tw/hexo/" target="_blank" rel="external">hexo官网</a></li>
+<li><a href="https://github.com/tommy351/hexo" target="_blank" rel="external">hexo github 地址</a></li>
+<li><a href="http://yangjian.me/workspace/building-blog-with-hexo/" target="_blank" rel="external">使用hexo搭建博客</a></li>
+</ul>
+<h4 id="安装和基本配置">安装和基本配置</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm <span class="keyword">install</span> -g hexo</span><br><span class="line">hexo init blogdir</span><br></pre></td></tr></table></figure>
+<p>在<code>blogdir</code>目录下就是一个新的hexo网站的框架。需要配置的就是 <code>_config.yml</code>文件。</p>
+<p>可以到hexo template网站找一个喜欢的模板clone到<code>themes</code>下，在<code>_config.yml</code>进行相应的配置即可。</p>
+<h4 id="部署到github-io">部署到github.io</h4><p>在github中创建名为<code>username.github.io</code>的git库，在该库的Setting中,应用<code>Automatic Page Generator</code>。在hexo的<code>_config.yml</code>中配置部署的相关信息:</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># Deployment</span><br><span class="line">## <span class="string">Docs:</span> <span class="string">http:</span><span class="comment">//zespia.tw/hexo/docs/deploy.html</span></span><br><span class="line"><span class="string">deploy:</span></span><br><span class="line"><span class="label">  type:</span> github</span><br><span class="line"><span class="label">  repository:</span> git<span class="annotation">@github</span>.<span class="string">com:</span>username/username.github.io.git</span><br><span class="line"><span class="label">  branch:</span> master</span><br></pre></td></tr></table></figure>
+<h4 id="测试">测试</h4><p>新创建一个Blog，部署到github上，如果一切顺利，通过 <a href="http://username.github.io" target="_blank" rel="external">http://username.github.io</a> 即可访问新的Blog站点。</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo <span class="built_in">new</span> <span class="string">"新的Blog"</span></span><br><span class="line">hexo deploy <span class="comment">--generate</span></span><br></pre></td></tr></table></figure>
+<h3 id="一些心得">一些心得</h3><ol>
+<li>Git只需要将<code>source/_post</code>下的文件进行版本控制即可，不需要将整个hexo项目目录纳入git库。</li>
+<li>中文文章最好使用中文作为标题</li>
+<li>部署之前使用 <code>hexo server --generate</code> 在本地测试</li>
+<li>项目下的<code>db.json</code>是hexo自动生成的，如果在测试中产生了一些不必要的标签和数据，可将其删除，运行<code>hexo generator</code>重新生成即可</li>
+<li>[8.20补充] 保证<code>source/_post</code>下只有需要的.md文件，如果有编辑器自动备份的文件，hexo在生成网页时的时候会一并生成产生重复的网页</li>
+</ol>
+<h3 id="使用Git将md文档管理起来">使用Git将md文档管理起来</h3><p>前面提到只需要将<code>source/_post</code>文件管理起来就可以了。在github下再创建一个新的库，比如叫<code>page_posts</code>。在<code>_post</code>目录下如下操作 ：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git init</span><br><span class="line">git add .</span><br><span class="line">git commit -m <span class="string">"创建post库"</span></span><br><span class="line">git remote add orgin git@github<span class="class">.com</span>:username/page_posts<span class="class">.git</span></span><br><span class="line">git push -u orgin master</span><br></pre></td></tr></table></figure>
+<p><em>最后一句push 中的-u是—set-upstream的简写，目的在于指定master分支的upstream是orgin。这样定义以后，今后需要提交直接push就可以了。</em></p>
+
+    
+  </div>
+
+
+        </div>
+
+        
+      </div>
+
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      <div class="site-overview">
+        <div class="site-author motion-element">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="λ.cpp" />
+          <p class="site-author-name">λ.cpp</p>
+        </div>
+        <p class="site-description motion-element"></p>
+        <div class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">文章</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分類</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">8</span>
+              <span class="site-state-item-name">標籤</span>
+              </a>
+          </div>
+
+        </div>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+              <a href="https://github.com/lambdacpp" target="_blank">GitHub</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="http://www.douban.com/people/lambdacpp/" target="_blank">DouBan</a>
+            </span>
+            
+          
+        </div>
+
+        
+        
+
+      </div>
+
+      
+
+    </div>
+  </div>
+
+
+    </div>
+
+    <div id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; &nbsp; 
+  2015
+  <span class="with-love">
+    <i class="icon-heart"></i>
+  </span>
+  <span class="author">λ.cpp</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 強力驅動
+</div>
+
+<div class="theme-info">
+  主題 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </div>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js" id="motion.global"></script>
+
+
+
+
+  
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+    });
+  </script>
+
+  
+
+  
+
+  
+  
+
+</body>
+</html>

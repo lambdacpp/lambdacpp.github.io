@@ -1,0 +1,559 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.2"/>
+
+
+
+
+  <meta name="keywords" content="Vagrant,虚拟化," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.2" />
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    analytics: {
+      baidu: '',
+      google: ''
+    },
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+  <title> 创建自己的Debian Vagrant Box // λ的笔记 </title>
+</head>
+
+<body>
+<!--[if lte IE 8]> <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'> <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode"><img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820" alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari." style='margin-left:auto;margin-right:auto;display: block;'/></a></div> <![endif]-->
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <div id="header" class="header">
+      <div class="header-inner">
+        <h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand">
+      <span class="logo">
+        <i class="icon-logo"></i>
+      </span>
+      <span class="site-title">λ的笔记</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+
+  <ul id="menu" class="menu">
+     
+    
+      
+      <li class="menu-item menu-item-home">
+        <a href="/">
+          <i class="menu-item-icon icon-home"></i> <br />
+          首頁
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-archives">
+        <a href="/archives">
+          <i class="menu-item-icon icon-archives"></i> <br />
+          歸檔
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-tags">
+        <a href="/tags">
+          <i class="menu-item-icon icon-tags"></i> <br />
+          標籤
+        </a>
+      </li>
+    
+  </ul>
+
+
+      </div>
+    </div>
+
+    <div id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content">
+          
+
+  <div id="posts" class="posts-expand">
+    
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              创建自己的Debian Vagrant Box
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          發表於 2013-12-03
+        </span>
+
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2013/12/03/创建自己的debian-vagrant-box/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2013/12/03/创建自己的debian-vagrant-box/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <p><strong><em>『懒惰是程序员的美德』—Larry Wall </em></strong></p>
+<p>云计算管理离不开自动化部署，于是Puppet火了。Chef、Saltstack、Ansible跟着也火，做好配置脚本，真正的一键部署。但攻城师们懒惰已经无法救药了，他们连自动化部署本身也不想重复了，于是Docker、Vagrant横空出世。自动化部署变成一种云服务的时候，那些七七八八的部署过程放到了一种叫Box的东西里面了，随需随取，丰简由人。</p>
+<p>最近想用Vagrant做测试，但访问Vagrant太慢，而且各路Boxes中的Box不能真正满足自己需要，所以决定自己做一个放服务器上。基本参考<a href="https://mikegriffin.ie/blog/20130418-creating-a-debian-wheezy-base-box-for-vagrant/" target="_blank" rel="external">这篇</a></p>
+<a id="more"></a>
+<h2 id="1-安装VirtualBox和Vagrant">1.安装VirtualBox和Vagrant</h2><p>官网下载VirtualBox deb包安装，需要注意的是配置<code>/etc/init.d/vboxdrv setup</code> Debian需要安装<code>dkms</code>和Linux的源码。不过只需要apt <code>dkms</code> 就行了， 相关的东西会自动安装<br><figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@desktop ~]# aptitude install dkms</span><br><span class="line">下列“新”软件包将被安装。         </span><br><span class="line">  dkms fakeroot&#123;<span class="literal">a</span>&#125; linux-headers-<span class="number">3.11</span>-<span class="number">2</span>-<span class="number">686</span>-pae&#123;<span class="literal">a</span>&#125; </span><br><span class="line">  linux-headers-<span class="number">3.11</span>-<span class="number">2</span>-common&#123;<span class="literal">a</span>&#125; linux-headers-<span class="number">686</span>-pae&#123;<span class="literal">a</span>&#125; </span><br><span class="line">  linux-kbuild-<span class="number">3.11</span>&#123;<span class="literal">a</span>&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="2-使用Debian安装盘创建一个虚拟机">2.使用Debian安装盘创建一个虚拟机</h2><ol>
+<li>创建虚拟机取名wheezy64</li>
+<li>关闭虚拟机的Audio和USB</li>
+<li>将netinst ISO 镜像挂载到虚拟机</li>
+<li>运行虚拟机，开始安装</li>
+<li>机器名 vagrant-debian-wheezy </li>
+<li>root口令(vagrant)</li>
+<li>创建用户vagrant，口令vagrant</li>
+</ol>
+<h2 id="3-登录虚拟机进行配置">3.登录虚拟机进行配置</h2><p>以root用户登录进行如下操作:</p>
+<h3 id="安装一下需要的软件">安装一下需要的软件</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">aptitude install python python-apt python-pycurl tmux</span><br><span class="line">aptitude install build-essential module-assistant</span><br><span class="line">m-<span class="tag">a</span> prepare</span><br><span class="line">aptitude install openssh-server zerofree sudo</span><br><span class="line">mkdir /home/vagrant/<span class="class">.ssh</span></span><br><span class="line">cd /home/vagrant/<span class="class">.ssh</span></span><br><span class="line">wget https:<span class="comment">//raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub</span></span><br><span class="line">mv vagrant<span class="class">.pub</span> authorized_keys</span><br><span class="line">chmod <span class="number">700</span> /home/vagrant/<span class="class">.ssh</span></span><br><span class="line">chown -R vagrant:vagrant /home/vagrant/.ssh</span><br></pre></td></tr></table></figure>
+<h3 id="安装VirtualBox_guest_additions">安装VirtualBox guest additions</h3><ol>
+<li>VirtualBox Devices菜单中选择<code>Install Guest Additions</code></li>
+<li>在虚拟机中mount光驱</li>
+<li><code>sh /media/cdrom/VBoxLinuxAdditions.run</code></li>
+</ol>
+<h3 id="配置vagrant用户">配置vagrant用户</h3><figure class="highlight nsis"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">groupadd <span class="literal">admin</span></span><br><span class="line">usermod -G <span class="literal">admin</span> vagrant</span><br></pre></td></tr></table></figure>
+<p>添加如下内容到<code>/etc/sudoers</code></p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">vagrant</span>    <span class="literal">ALL</span> = NOPASSWD: <span class="literal">ALL</span></span><br></pre></td></tr></table></figure>
+<h3 id="清除不需要的文件">清除不需要的文件</h3><figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">aptitude clean</span><br><span class="line"><span class="keyword">rm</span> -rf /usr/share/doc</span><br><span class="line"><span class="keyword">rm</span> -rf /usr/src/vboxguest*</span><br><span class="line"><span class="keyword">rm</span> -rf /usr/src/virtualbox-ose-guest*</span><br><span class="line">find /<span class="keyword">var</span>/cache -<span class="keyword">type</span> f -exec <span class="keyword">rm</span> -rf &#123;&#125; \;</span><br><span class="line"><span class="keyword">rm</span> -rf /usr/share/locale/&#123;af,am,ar,<span class="keyword">as</span>,ast,az,bal,be,bg,bn,bn_IN,<span class="keyword">br</span>,<span class="keyword">bs</span>,byn,<span class="keyword">ca</span>,cr,<span class="keyword">cs</span>,csb,cy,da,<span class="keyword">de</span>,de_AT,dz,el,en_AU,en_CA,eo,es,et,et_EE,eu,fa,fi,fo,fr,fur,ga,gez,<span class="keyword">gl</span>,gu,haw,<span class="keyword">he</span>,hi,hr,hu,hy,id,is,it,ja,ka,kk,km,kn,ko,kok,ku,ky,lg,lt,<span class="keyword">lv</span>,mg,mi,mk,<span class="keyword">ml</span>,mn,mr,ms,mt,nb,ne,<span class="keyword">nl</span>,nn,<span class="keyword">no</span>,nso,oc,or,pa,<span class="keyword">pl</span>,ps,pt,pt_BR,<span class="keyword">qu</span>,ro,<span class="keyword">ru</span>,rw,si,sk,sl,<span class="keyword">so</span>,sq,sr,sr*latin,sv,<span class="keyword">sw</span>,<span class="keyword">ta</span>,<span class="keyword">te</span>,th,ti,tig,tk,tl,tr,tt,ur,urd,ve,vi,wa,wal,wo,xh,zh,zh_HK,zh_CN,zh_TW,zu&#125;</span><br><span class="line">```  </span><br><span class="line">### 收缩box的尺寸</span><br></pre></td></tr></table></figure>
+<p>init 1</p>
+<p>mount -o remount,ro /dev/sda1<br>zerofree /dev/sda1<br><figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="preprocessor">## 4.创建box</span></span><br></pre></td></tr></table></figure></p>
+<p>$vagrant package —base wheezy64<br>[wheezy64] Clearing any previously set forwarded ports…<br>[wheezy64] Creating temporary directory for export…<br>[wheezy64] Exporting VM…<br>[wheezy64] Compressing package to: /Users/hehe/package.box<br><figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="preprocessor">## 5. 使用新创建的box</span></span><br></pre></td></tr></table></figure></p>
+<p>vagrant box add MyDebianBox package.box<br>```</p>
+
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Vagrant/"> #Vagrant </a>
+          
+            <a href="/tags/虚拟化/"> #虚拟化 </a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2013/12/11/vagrant-使用技巧/">Vagrant 使用技巧</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2013/10/08/添加一张无线网卡做ap/">添加一张无线网卡做AP</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </div>
+  </div>
+
+
+
+    
+      <div class="comments" id="comments">
+        
+          <div class="ds-thread" data-thread-key="2013/12/03/创建自己的debian-vagrant-box/"
+               data-title="创建自己的Debian Vagrant Box" data-url="http://lambdacpp.github.io/2013/12/03/创建自己的debian-vagrant-box/">
+          </div>
+        
+      </div>
+    
+  </div>
+
+
+        </div>
+
+        
+      </div>
+
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目錄
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            本站概覽
+          </li>
+        </ul>
+      
+
+      <div class="site-overview">
+        <div class="site-author motion-element">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="λ.cpp" />
+          <p class="site-author-name">λ.cpp</p>
+        </div>
+        <p class="site-description motion-element"></p>
+        <div class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">文章</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分類</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">8</span>
+              <span class="site-state-item-name">標籤</span>
+              </a>
+          </div>
+
+        </div>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+              <a href="https://github.com/lambdacpp" target="_blank">GitHub</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="http://www.douban.com/people/lambdacpp/" target="_blank">DouBan</a>
+            </span>
+            
+          
+        </div>
+
+        
+        
+
+      </div>
+
+      
+        <div class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-安装VirtualBox和Vagrant"><span class="nav-number">1.</span> <span class="nav-text">1.安装VirtualBox和Vagrant</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-使用Debian安装盘创建一个虚拟机"><span class="nav-number">2.</span> <span class="nav-text">2.使用Debian安装盘创建一个虚拟机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-登录虚拟机进行配置"><span class="nav-number">3.</span> <span class="nav-text">3.登录虚拟机进行配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装一下需要的软件"><span class="nav-number">3.1.</span> <span class="nav-text">安装一下需要的软件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装VirtualBox_guest_additions"><span class="nav-number">3.2.</span> <span class="nav-text">安装VirtualBox guest additions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置vagrant用户"><span class="nav-number">3.3.</span> <span class="nav-text">配置vagrant用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#清除不需要的文件"><span class="nav-number">3.4.</span> <span class="nav-text">清除不需要的文件</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </div>
+      
+
+    </div>
+  </div>
+
+
+    </div>
+
+    <div id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; &nbsp; 
+  2015
+  <span class="with-love">
+    <i class="icon-heart"></i>
+  </span>
+  <span class="author">λ.cpp</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 強力驅動
+</div>
+
+<div class="theme-info">
+  主題 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </div>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js" id="motion.global"></script>
+
+
+
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var $sidebarInner = $('.sidebar-inner');
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.didShow', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+          var self = this;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      $(indicator).velocity('stop').velocity({
+        opacity: action === 'show' ? 0.4 : 0
+      }, { duration: 100 });
+    }
+
+  });
+</script>
+
+
+  <script type="text/javascript" id="sidebar.nav">
+    $(document).ready(function () {
+      var html = $('html');
+
+      $('.sidebar-nav li').on('click', function () {
+        var item = $(this);
+        var activeTabClassName = 'sidebar-nav-active';
+        var activePanelClassName = 'sidebar-panel-active';
+        if (item.hasClass(activeTabClassName)) {
+          return;
+        }
+
+        var currentTarget = $('.' + activePanelClassName);
+        var target = $('.' + item.data('target'));
+
+        currentTarget.velocity('transition.slideUpOut', 200, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', 200)
+            .addClass(activePanelClassName);
+        });
+
+        item.siblings().removeClass(activeTabClassName);
+        item.addClass(activeTabClassName);
+      });
+
+      $('.post-toc a').on('click', function (e) {
+        e.preventDefault();
+        var offset = $(escapeSelector(this.getAttribute('href'))).offset().top;
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        });
+      });
+
+      // Expand sidebar on post detail page by default, when post has a toc.
+      var $tocContent = $('.post-toc-content');
+      if (isDesktop() && CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    });
+  </script>
+
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"your-duoshuo-shortname"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+
+
+  
+  
+
+</body>
+</html>
