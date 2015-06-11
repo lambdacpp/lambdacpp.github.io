@@ -20,7 +20,7 @@
 
 
 
-  <meta name="keywords" content="Vagrant,虚拟化," />
+  <meta name="keywords" content="RADIUS," />
 
 
 
@@ -43,7 +43,7 @@
 
 
 
-  <title> Vagrant 使用技巧 // λ的笔记 </title>
+  <title> FreeRADIUS rlm_python 测试 // λ的笔记 </title>
 </head>
 
 <body>
@@ -115,7 +115,7 @@
           
           
             
-              Vagrant 使用技巧
+              FreeRADIUS rlm_python 测试
             
           
         </h1>
@@ -123,7 +123,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          發表於 2013-12-11
+          發表於 2015-05-28
         </span>
 
         
@@ -140,15 +140,25 @@
       
 
       
-        <p><strong>上帝借『墙』一双慧眼吧，Vagrant的文档真的做得很好</strong></p>
-<p>这里记录这两天使用Vagrant的一些经验。Vagrant的命令非常简单，不赘述。虚拟机重要的配置都在文件<code>Vagrantfile</code>中。</p>
-<p><strong>首先要注意</strong>，<code>Vagrantfile</code>开头就有指出API的版本：<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="setting">VAGRANTFILE_API_VERSION = <span class="value"><span class="string">"2"</span></span></span></span><br></pre></td></tr></table></figure></p>
+        <p><code>rlm_python</code>是 <code>FreeRADIUS</code> 的Python语言扩展模块，用户可通过编写Python脚本来定义认证、授权及记账的逻辑。在RADIUS系统中使用动态语言模块可极大的提高RADIUS系统的灵活性，简化系统配置，我们在生产环境中大量应用了<code>rlm_perl</code>扩展，效果不错。最近抽时间测试了一下Python模块。测试在<code>Debian 8</code>下进行认证的配置。</p>
 <a id="more"></a>
-<p>所以我们应该查阅Version2<a href="http://docs.vagrantup.com/v2/" target="_blank" rel="external">文档</a>，网络上搜出来好多都是<code>V1</code>的文档，不要搞错了。</p>
-<h3 id="网络配置">网络配置</h3><p>以下是Vagrantfile的配置例子，其实已经非常清楚了<br><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment"># Create a forwarded port mapping which allows access to a specific port</span></span><br><span class="line">  <span class="comment"># within the machine from a port on the host machine. In the example below,</span></span><br><span class="line">  <span class="comment"># accessing "localhost:8080" will access port 80 on the guest machine.</span></span><br><span class="line">  <span class="comment"># config.vm.network :forwarded_port, guest: 80, host: 8080</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># Create a private network, which allows host-only access to the machine</span></span><br><span class="line">  <span class="comment"># using a specific IP.</span></span><br><span class="line">  <span class="comment"># config.vm.network :private_network, ip: "192.168.33.10"</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># Create a public network, which generally matched to bridged network.</span></span><br><span class="line">  <span class="comment"># Bridged networks make the machine appear as another physical device on</span></span><br><span class="line">  <span class="comment"># your network.</span></span><br><span class="line">  <span class="comment"># config.vm.network :public_network</span></span><br><span class="line"><span class="string">``</span><span class="string">`  </span><br><span class="line"></span><br><span class="line">* __端口转发__ `</span>config.vm.network <span class="symbol">:forwarded_port</span>, <span class="symbol">guest:</span> <span class="number">80</span>, <span class="symbol">host:</span> <span class="number">8080</span><span class="string">`，配置后访问本地的8080就相当于访问虚拟机的80。</span><br><span class="line">* __直接配置私有地址__ `</span>config.vm.network <span class="symbol">:private_network</span>, <span class="symbol">ip:</span> <span class="string">"192.168.33.10"</span><span class="string">`，配置后`</span><span class="variable">$ssh</span> <span class="number">192.168</span>.<span class="number">33.10</span><span class="string">`访问虚拟机。</span><br><span class="line">* __桥模式__ 使用外部DHCP，获取外部的网络的IP地址`</span>config.vm.network <span class="symbol">:public_network<span class="string">`，如果有多个网络接口，就需要在后面指定清楚使用那个接口出去，多写一个参数`</span></span><span class="symbol">:public_network</span>,<span class="symbol">:bridged=&gt;<span class="string">'eth0'</span><span class="string">`。不写清楚启动的时候vagrant就会问”你使用那个做桥啊？1还是2“。_使用桥模式那虚拟机获取的ip是多少呢？_，使用`</span>vagrant</span> ssh<span class="string">`可以ssh到虚拟机，然后就`</span>ifconfig<span class="string">`自己看了哦。</span><br><span class="line"></span><br><span class="line">### 共享目录</span></span><br></pre></td></tr></table></figure></p>
-<h1 id="Share_an_additional_folder_to_the_guest_VM-_The_first_argument_is">Share an additional folder to the guest VM. The first argument is</h1><h1 id="the_path_on_the_host_to_the_actual_folder-_The_second_argument_is">the path on the host to the actual folder. The second argument is</h1><h1 id="the_path_on_the_guest_to_mount_the_folder-_And_the_optional_third">the path on the guest to mount the folder. And the optional third</h1><h1 id="argument_is_a_set_of_non-required_options-">argument is a set of non-required options.</h1><p>  config.vm.synced_folder “../data”, “/vagrant_data”<br>```</p>
-<p>可以搞一个目录来和虚拟机同步文件。使用 <code>config.vm.synced_folder</code>,第一个参数是环境的目录，第二个参数是在虚拟机中mount的所在位置。 </p>
-<h3 id="快照">快照</h3><p>Virtualbox支持Snapshot，而原生的Vagrant没有快照方面的功能。好在Vagrant支持plugin，所以有人就为Vagrant开发了<a href="https://github.com/dergachev/vagrant-vbox-snapshot" target="_blank" rel="external">snapshot插件</a>。</p>
+<h1 id="使用_rlm_python_进行认证的配置过程">使用 <code>rlm_python</code> 进行认证的配置过程</h1><p><code>FreeRADIUS</code>通过<code>apt</code>安装不必赘述，其配置包括这几个部分：</p>
+<h2 id="编写Python认证模块">编写<code>Python</code>认证模块</h2><p>rlm<em>python以module的方式动态加载Python代码，所以我们将Python认证代码放在一个独立的目录中，按Python语言的惯例创建的一个空文件`<em>_init</em></em>.py<code>。认证实现的代码放在</code>mytest.py`中。下面的代码仅仅在日志文件中记录一下认证请求：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> radiusd</span><br><span class="line"><span class="keyword">import</span> os </span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">instantiate</span><span class="params">(p)</span>:</span></span><br><span class="line">    radiusd.radlog(radiusd.L_INFO, <span class="string">'Python radius module configuration: %s'</span> % server)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">authorize</span><span class="params">(p)</span>:</span></span><br><span class="line">  radiusd.radlog(radiusd.L_INFO, <span class="string">'*** radius call py in authorize  *** '</span> )</span><br><span class="line">  <span class="keyword">for</span> e <span class="keyword">in</span> p:</span><br><span class="line">      radiusd.radlog(radiusd.L_INFO, <span class="string">'radius auth element len=%d,v0=%s,v0_type=%s,v1=%s,v1_type=%s '</span> %</span><br><span class="line">                     (len(e), </span><br><span class="line">                      e[<span class="number">0</span>], type(e[<span class="number">0</span>]),</span><br><span class="line">                      e[<span class="number">1</span>], type(e[<span class="number">1</span>])))</span><br><span class="line">   <span class="keyword">return</span> radiusd.RLM_MODULE_OK</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">authenticate</span><span class="params">(p)</span>:</span></span><br><span class="line">  <span class="keyword">return</span> radiusd.RLM_MODULE_OK</span><br></pre></td></tr></table></figure>
+<p>要让FreeRADIUS动态加载Python代码时候能找到模块，<strong>需要将Python模块<em>整个目录</em>拷贝到Python环境模块搜寻路径中去，在<code>Debian8</code>下应将整个代码目录拷贝到<code>/usr/lib/python2.7/</code></strong> </p>
+<h2 id="配置sites-enabled/default">配置<code>sites-enabled/default</code></h2><p>在RADIUS虚拟主机中打开Python模块，要让前面的<code>authorize</code>方法生效在配置的 <code>authorize</code> 小节添加内容：</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">python</span></span><br><span class="line">update <span class="keyword">control</span> &#123;</span><br><span class="line">   Auth-Type := <span class="keyword">python</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同理让<code>authenticate</code>方法生效需要在<code>authenticate</code>小节添加内容：</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Auth-Type <span class="keyword">python</span> &#123;</span><br><span class="line">   <span class="keyword">python</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="配置modules/python">配置<code>modules/python</code></h2><p>在<code>FreeRADIUS</code>配置目录中的<code>modules</code>目录下添加名为<code>python</code>的新文件：</p>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">python &#123;</span><br><span class="line">      <span class="variable">mod_instantiate =</span> pymod.mytest</span><br><span class="line">      <span class="variable">func_instantiate =</span> instantiate</span><br><span class="line"></span><br><span class="line">      <span class="variable">mod_authorize =</span> pymod.mytest</span><br><span class="line">      <span class="variable">func_authorize =</span> authorize</span><br><span class="line"></span><br><span class="line">      <span class="variable">mod_authenticate =</span> pymod.mytest</span><br><span class="line">      <span class="variable">func_authenticate =</span> authenticate </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>到此 <code>rlm_python</code> 配置完成，启动FreeRADIUS，可通过radtest测试认证过程。</p>
+<h1 id="rlm_python_优势和问题"><code>rlm_python</code> 优势和问题</h1><p>在认证中嵌入脚本语言优势表现在两方面：</p>
+<ul>
+<li>可极大的提高认证业务流程的灵活性，针对不同情况调整Python程序就可快速应对</li>
+<li>应用Python丰富的库可使<code>RADIUS</code>系统与其他外部应用联动，如访问数据库、操作WebService等。</li>
+</ul>
+<p>但将<code>rlm_python</code>用于生产环境尚有一些风险。首先是并发性能弱，通过测试发现不论RADIUS请求的并发有多少<code>rlm_python</code>的脚本都只有一个实例在运行，而<code>rlm_perl</code>可配置一个实例池来同时处理并发请求。</p>
 
       
     </div>
@@ -157,9 +167,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Vagrant/"> #Vagrant </a>
-          
-            <a href="/tags/虚拟化/"> #虚拟化 </a>
+            <a href="/tags/RADIUS/"> #RADIUS </a>
           
         </div>
       
@@ -168,13 +176,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2014/01/26/使用mrtg-rrdtools/">使用MRTG-RRDTools</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2013/12/03/创建自己的debian-vagrant-box/">创建自己的Debian Vagrant Box</a>
+              <a href="/2014/01/26/使用mrtg-rrdtools/">使用MRTG-RRDTools</a>
             
           </div>
         </div>
@@ -272,7 +278,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#网络配置"><span class="nav-number">1.</span> <span class="nav-text">网络配置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Share_an_additional_folder_to_the_guest_VM-_The_first_argument_is"><span class="nav-number"></span> <span class="nav-text">Share an additional folder to the guest VM. The first argument is</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#the_path_on_the_host_to_the_actual_folder-_The_second_argument_is"><span class="nav-number"></span> <span class="nav-text">the path on the host to the actual folder. The second argument is</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#the_path_on_the_guest_to_mount_the_folder-_And_the_optional_third"><span class="nav-number"></span> <span class="nav-text">the path on the guest to mount the folder. And the optional third</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#argument_is_a_set_of_non-required_options-"><span class="nav-number"></span> <span class="nav-text">argument is a set of non-required options.</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#快照"><span class="nav-number">1.</span> <span class="nav-text">快照</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用_rlm_python_进行认证的配置过程"><span class="nav-number">1.</span> <span class="nav-text">使用 rlm_python 进行认证的配置过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编写Python认证模块"><span class="nav-number">1.1.</span> <span class="nav-text">编写Python认证模块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置sites-enabled/default"><span class="nav-number">1.2.</span> <span class="nav-text">配置sites-enabled/default</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置modules/python"><span class="nav-number">1.3.</span> <span class="nav-text">配置modules/python</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rlm_python_优势和问题"><span class="nav-number">2.</span> <span class="nav-text">rlm_python 优势和问题</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

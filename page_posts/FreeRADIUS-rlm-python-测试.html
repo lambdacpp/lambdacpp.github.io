@@ -1,0 +1,279 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.3"/>
+
+
+
+
+  <meta name="keywords" content="," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.3" />
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    analytics: {
+      google: ''
+    },
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+  <title>
+  
+
+  
+    FreeRADIUS rlm_python 测试 // λ的笔记
+  
+</title>
+</head>
+
+<body>
+<!--[if lte IE 8]> <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'> <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode"><img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820" alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari." style='margin-left:auto;margin-right:auto;display: block;'/></a></div> <![endif]-->
+  <div class="container one-column ">
+    <div class="headband"></div>
+
+    <div id="header" class="header">
+      <div class="header-inner">
+        <h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand">
+      <span class="logo">
+        <i class="icon-logo"></i>
+      </span>
+      <span class="site-title">λ的笔记</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+
+  <ul id="menu" class="menu">
+     
+    
+      
+      <li class="menu-item menu-item-home">
+        <a href="/">
+          <i class="menu-item-icon icon-home"></i> <br />
+          首頁
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-archives">
+        <a href="/archives">
+          <i class="menu-item-icon icon-archives"></i> <br />
+          歸檔
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-tags">
+        <a href="/tags">
+          <i class="menu-item-icon icon-tags"></i> <br />
+          標籤
+        </a>
+      </li>
+    
+  </ul>
+
+
+      </div>
+    </div>
+
+    <div id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content">
+          
+
+  <div id="posts" class="posts-expand">
+    
+    
+      <p><code>rlm_python</code>是 <code>FreeRADIUS</code> 的Python语言扩展模块，用户可通过编写Python脚本来定义认证、授权及记账的逻辑。在RADIUS系统中使用动态语言模块可极大的提高RADIUS系统的灵活性，简化系统配置，我们在生产环境中大量应用了<code>rlm_perl</code>扩展，效果不错。最近抽时间测试了一下Python模块。测试在<code>Debian 8</code>下进行认证的配置。</p>
+<a id="more"></a>
+<h1 id="使用_rlm_python_进行认证的配置过程">使用 <code>rlm_python</code> 进行认证的配置过程</h1><p><code>FreeRADIUS</code>通过<code>apt</code>安装不必赘述，其配置包括这几个部分：</p>
+<h2 id="编写Python认证模块">编写<code>Python</code>认证模块</h2><p>rlm<em>python以module的方式动态加载Python代码，所以我们将Python认证代码放在一个独立的目录中，按Python语言的惯例创建的一个空文件`<em>_init</em></em>.py<code>。认证实现的代码放在</code>mytest.py`中。下面的代码仅仅在日志文件中记录一下认证请求：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> radiusd</span><br><span class="line"><span class="keyword">import</span> os </span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">instantiate</span><span class="params">(p)</span>:</span></span><br><span class="line">    radiusd.radlog(radiusd.L_INFO, <span class="string">'Python radius module configuration: %s'</span> % server)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">authorize</span><span class="params">(p)</span>:</span></span><br><span class="line">  radiusd.radlog(radiusd.L_INFO, <span class="string">'*** radius call py in authorize  *** '</span> )</span><br><span class="line">  <span class="keyword">for</span> e <span class="keyword">in</span> p:</span><br><span class="line">      radiusd.radlog(radiusd.L_INFO, <span class="string">'radius auth element len=%d,v0=%s,v0_type=%s,v1=%s,v1_type=%s '</span> %</span><br><span class="line">                     (len(e), </span><br><span class="line">                      e[<span class="number">0</span>], type(e[<span class="number">0</span>]),</span><br><span class="line">                      e[<span class="number">1</span>], type(e[<span class="number">1</span>])))</span><br><span class="line">   <span class="keyword">return</span> radiusd.RLM_MODULE_OK</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">authenticate</span><span class="params">(p)</span>:</span></span><br><span class="line">  <span class="keyword">return</span> radiusd.RLM_MODULE_OK</span><br></pre></td></tr></table></figure>
+<p>要让FreeRADIUS动态加载Python代码时候能找到模块，<strong>需要将Python模块<em>整个目录</em>拷贝到Python环境模块搜寻路径中去，在<code>Debian8</code>下应将整个代码目录拷贝到<code>/usr/lib/python2.7/</code></strong> </p>
+<h2 id="配置sites-enabled/default">配置<code>sites-enabled/default</code></h2><p>在RADIUS虚拟主机中打开Python模块，要让前面的<code>authorize</code>方法生效在配置的 <code>authorize</code> 小节添加内容：</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">python</span></span><br><span class="line">update <span class="keyword">control</span> &#123;</span><br><span class="line">   Auth-Type := <span class="keyword">python</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同理让<code>authenticate</code>方法生效需要在<code>authenticate</code>小节添加内容：</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Auth-Type <span class="keyword">python</span> &#123;</span><br><span class="line">   <span class="keyword">python</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="配置modules/python">配置<code>modules/python</code></h2><p>在<code>FreeRADIUS</code>配置目录中的<code>modules</code>目录下添加名为<code>python</code>的新文件：</p>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">python &#123;</span><br><span class="line">      <span class="variable">mod_instantiate =</span> pymod.mytest</span><br><span class="line">      <span class="variable">func_instantiate =</span> instantiate</span><br><span class="line"></span><br><span class="line">      <span class="variable">mod_authorize =</span> pymod.mytest</span><br><span class="line">      <span class="variable">func_authorize =</span> authorize</span><br><span class="line"></span><br><span class="line">      <span class="variable">mod_authenticate =</span> pymod.mytest</span><br><span class="line">      <span class="variable">func_authenticate =</span> authenticate </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>到此 <code>rlm_python</code> 配置完成，启动FreeRADIUS，可通过radtest测试认证过程。</p>
+<h1 id="rlm_python_优势和问题"><code>rlm_python</code> 优势和问题</h1><p>在认证中嵌入脚本语言优势表现在两方面：</p>
+<ul>
+<li>可极大的提高认证业务流程的灵活性，针对不同情况调整Python程序就可快速应对</li>
+<li>应用Python丰富的库可使<code>RADIUS</code>系统与其他外部应用联动，如访问数据库、操作WebService等。</li>
+</ul>
+<p>但将<code>rlm_python</code>用于生产环境尚有一些风险。首先是并发性能弱，通过测试发现不论RADIUS请求的并发有多少<code>rlm_python</code>的脚本都只有一个实例在运行，而<code>rlm_perl</code>可配置一个实例池来同时处理并发请求。</p>
+
+    
+  </div>
+
+
+        </div>
+
+        
+      </div>
+
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      <div class="site-overview">
+        <div class="site-author motion-element">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="λ.cpp" />
+          <p class="site-author-name">λ.cpp</p>
+        </div>
+        <p class="site-description motion-element"></p>
+        <div class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">8</span>
+              <span class="site-state-item-name">文章</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分類</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">8</span>
+              <span class="site-state-item-name">標籤</span>
+              </a>
+          </div>
+
+        </div>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+      </div>
+
+      
+
+    </div>
+  </div>
+
+
+    </div>
+
+    <div id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; &nbsp; 
+  2015
+  <span class="with-love">
+    <i class="icon-heart"></i>
+  </span>
+  <span class="author">λ.cpp</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 強力驅動
+</div>
+
+<div class="theme-info">
+  主題 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </div>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js" id="motion.global"></script>
+
+
+
+
+  
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+    });
+  </script>
+
+  
+
+  
+
+  
+  
+
+</body>
+</html>
